@@ -1,0 +1,39 @@
+services:
+  user-service:
+    image: user-service
+    build: ./user-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      - postgres
+    networks:
+      - backend-network
+  company-service:
+    image: company-service
+    build: ./company-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/companydb
+      SPRING_DATASOURCE_USERNAME: company
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      - postgres
+    networks:
+      - backend-network
+
+  postgres:
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: postgres
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+volumes:
+  postgres_data:
