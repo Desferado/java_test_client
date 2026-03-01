@@ -1,0 +1,5 @@
+FROM openjdk:21-jre-slim-buster AS base
+
+COPY target/test_client.jar test_client.jar
+
+ENTRYPOINT ["java","-jar","test_client.jar"]

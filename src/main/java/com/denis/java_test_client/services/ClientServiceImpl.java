@@ -1,10 +1,13 @@
 package com.denis.java_test_client.services;
 
+import com.denis.java_test_client.utils.MethodLog;
+import com.denis.java_test_client.exception.ClientNotFoundException;
 import com.denis.java_test_client.models.Client;
 import com.denis.java_test_client.repositories.ClientRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ClientServiceImpl implements ClientService {
@@ -31,20 +34,34 @@ private final ClientRepository clientRepository;
     }
 
     @Override
-    public Client updateClient(Client client, Client newClient) {
-        if(clientRepository.findClientByClient_id(client.getClient_id()).isPresent()){
+    public Optional<Client> findClientByName(String name, String lastName) {
+        return Optional.ofNullable(clientRepository.findClientByName(name, lastName)
+                .orElseThrow(ClientNotFoundException::new));
+    }
+
+    @Override
+    public Optional<Client> findClientByClient_id(Integer id) {
+        return Optional.ofNullable(clientRepository.findClientByClient_id(id)
+                .orElseThrow(ClientNotFoundException::new));
+    }
+
+    @Override
+    public Client updateClient(Integer id, Client newClient) {
+        if(clientRepository.findClientByClient_id(id).isPresent()){
             clientRepository.save(newClient);
         }
         return newClient;
     }
 
     @Override
-    public void deleteClient(Client client) {
-        if (clientRepository.findClientByClient_id(client.getClient_id()).isPresent()) {
-            clientRepository.deleteClientByClient_id(client.getClient_id());
-        }
-        else {
+    public Optional<Client> deleteClientByClient_id(Integer id) {
+        Optional<Client> deleteClient = clientRepository.findClientByClient_id(id);
+        if (deleteClient.isEmpty()) {
             System.out.println("Client not found in database");
         }
+        else {
+            clientRepository.deleteClientByClient_id(id);
+        }
+        return deleteClient;
     }
 }
