@@ -1,0 +1,23 @@
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html           # Адрес страницы Swagger UI
+    title: MyApp API Documentation   # Заголовок документа Swagger
+  api-docs:
+    path: /v3/api-docs               # URL для доступа к спецификации OpenAPI
+info:
+  description: Простое RESTful приложение для управления клиентами и контактами
+  version: 1.0.0                     # Версия API
+  termsOfServiceUrl: www.example.com
+  license: Apache License Version 2.0
+  licenseUrl: www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: http://localhost:8080       # Локальная среда
+  - url: https://example.com/api     # Продакшен-среда
+tags:
+  - name: Clients                    # Тэги для группировки операций в Swagger
+    description: Управляет клиентами
+  - name: Contacts                   # Другой тэг для другого набора операций
+    description: Управляет контактами
+externalDocs:
+  description: Подробнее о проекте
+  url: https://github.com/your-project-repo

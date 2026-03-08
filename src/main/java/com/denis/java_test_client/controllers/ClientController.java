@@ -1,5 +1,6 @@
 package com.denis.java_test_client.controllers;
 
+import com.denis.java_test_client.dto.ClientDTO;
 import com.denis.java_test_client.models.Client;
 import com.denis.java_test_client.services.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequestMapping("/client")
 @RestController
@@ -24,9 +27,10 @@ public class ClientController {
      * В контроллере прописана логика работы с клиентами: Добавление, удаление,
      * редактирование, получение всего списка.
      */
-    private final ClientService clientService;
-    public ClientController(ClientService clientService) {
-        this.clientService = clientService;
+    private final ClientService ClientService;
+    @Autowired
+    public ClientController(ClientService ClientService) {
+        this.ClientService = ClientService;
     }
     @Operation(
             summary = "Получение списка всех клиентов",
@@ -39,9 +43,12 @@ public class ClientController {
                             )
                     )
             })
-    @GetMapping("/get-clients")
-    public ResponseEntity<List<Client>> getAllClients() {
-        return ResponseEntity.ok(clientService.findAllClient());
+    @GetMapping("/")
+    public List<ClientDTO> getAllClients() {
+        return ClientService.findAllClient()
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
     @Operation(
             summary = "Поиск клиента по id",
@@ -55,15 +62,12 @@ public class ClientController {
                     )
             })
     @GetMapping("{id}")
-    public ResponseEntity<Optional<Client>> getClientById(
+    public ResponseEntity<ClientDTO> getClientById(
             @Parameter(description = "Поиск клиента с данным id")
-            @RequestParam(required = true, name = "номер клиента") Integer id) {
-        Optional<Client> client = clientService.findClientByClient_id(id);
-        if (client.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        } else {
-            return ResponseEntity.ok(client);
-        }
+            @RequestParam(required = true, name = "номер клиента") Long id) {
+        var clientOptional = ClientService.findClientByClient_id(id);
+        return clientOptional.map(this::convertToDtoAndRespond)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Operation(
@@ -82,7 +86,7 @@ public class ClientController {
             @Parameter(description = "Поиск клиента с данными именем и фамилией")
             @PathVariable String firstName,
             @PathVariable String lastName) {
-        Optional<Client> clientOptional = clientService.findClientByName(firstName, lastName);
+        Optional<Client> clientOptional = ClientService.findClientByName(firstName, lastName);
         return clientOptional.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -98,9 +102,11 @@ public class ClientController {
                             )
                     )
             })
-    @PostMapping
-    public ResponseEntity <Client> createClient(@RequestBody Client client) {
-        return ResponseEntity.ok(clientService.createClient(client));
+    @PostMapping("/")
+    public ResponseEntity <Void> createClient(@RequestBody ClientDTO clientDTO) {
+        Client client = convertFromDto(clientDTO);
+        ClientService.save(client);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @Operation(
             summary = "Изменение клиента в базе",
@@ -113,14 +119,16 @@ public class ClientController {
                             )
                     )
             })
-    @PutMapping
-    public ResponseEntity <Client> updateClient(@RequestBody Integer id, Client newClient) {
-        Client client = clientService.updateClient(id, newClient);
-        if (client == null) {
+    @PutMapping("/{id}")
+    public ResponseEntity <Void> updateClient(@PathVariable Long id
+            ,@RequestBody ClientDTO clientDTO) {
+        if (!ClientService.existsById(id)) {
             return ResponseEntity.notFound().build();
-        } else {
-            return ResponseEntity.ok(client);
         }
+        Client existingClient = convertFromDto(clientDTO);
+        existingClient.setClient_id(id); // Сохраняем идентификатор клиента
+        ClientService.save(existingClient);
+        return ResponseEntity.noContent().build();
     }
     @Operation(
             summary = "Удаление клиента из базы",
@@ -134,13 +142,36 @@ public class ClientController {
                     )
             })
     @DeleteMapping("{id}")
-    public ResponseEntity<Optional<Client>> removeClient(
+    public ResponseEntity<Void> removeClient(
             @Parameter (description = "Удаление пользователя с данным id")
-            @RequestParam (required = false, name = "номер пользователя") Integer id) {
-        Optional<Client> client = clientService.deleteClientByClient_id(id);
-        if (client.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            @RequestParam (required = false, name = "номер пользователя") Long id) {
+        try {
+            ClientService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) { // Перехват исключений при неудачном удалении
+            return ResponseEntity.badRequest().body(null);
         }
-        return ResponseEntity.ok(client);
+    }
+
+
+    private ClientDTO convertToDto(Client client) {
+        ClientDTO dto = new ClientDTO();
+        dto.setClient_id(client.getClient_id());
+        dto.setName(client.getName());
+        dto.setLastName(client.getLast_name());
+        return dto;
+    }
+
+    private ResponseEntity<ClientDTO> convertToDtoAndRespond(Client client) {
+        return ResponseEntity.ok(convertToDto(client));
+    }
+
+    private Client convertFromDto(ClientDTO dto) {
+        Client client = new Client();
+        client.setClient_id(dto.getClient_id());
+        client.setName(dto.getName());
+        client.setLast_name(dto.getLastName());
+        return client;
     }
 }
+
