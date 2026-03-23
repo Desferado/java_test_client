@@ -9,7 +9,7 @@ import lombok.Data;
 public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;      //идентификатор контакта
+    private Long id;      //идентификатор контакта
     @Column(nullable = false)
     private String phone;    // номер телефона
     @Column(nullable = false)

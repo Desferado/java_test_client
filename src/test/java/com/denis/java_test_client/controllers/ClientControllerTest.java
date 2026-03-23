@@ -30,8 +30,8 @@ class ClientControllerTest {
     void setUp() {
         // Заготовленные объекты для тестов
         List<Client> clients = new ArrayList<>();
-        clients.add(new Client(1,"John", "Doe"));
-        clients.add(new Client(2, "Jane", "Smith"));
+        clients.add(new Client(1L,"John", "Doe"));
+        clients.add(new Client(2L, "Jane", "Smith"));
 
         // Моделируем поведение service.findAllClient(), возвращающего подготовленный список клиентов
         when(clientService.findAllClient()).thenReturn(clients);
