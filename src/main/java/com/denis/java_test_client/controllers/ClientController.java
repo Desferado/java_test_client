@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequestMapping("/client")
@@ -27,10 +26,10 @@ public class ClientController {
      * В контроллере прописана логика работы с клиентами: Добавление, удаление,
      * редактирование, получение всего списка.
      */
-    private final ClientService ClientService;
+    private final ClientService сlientService;
     @Autowired
-    public ClientController(ClientService ClientService) {
-        this.ClientService = ClientService;
+    public ClientController(ClientService сlientService) {
+        this.сlientService = сlientService;
     }
     @Operation(
             summary = "Получение списка всех клиентов",
@@ -45,7 +44,7 @@ public class ClientController {
             })
     @GetMapping("/")
     public List<ClientDTO> getAllClients() {
-        return ClientService.findAllClient()
+        return сlientService.findAllClient()
                 .stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -63,9 +62,9 @@ public class ClientController {
             })
     @GetMapping("{id}")
     public ResponseEntity<ClientDTO> getClientById(
-            @Parameter(description = "Поиск клиента с данным id")
+            @PathVariable @Parameter(description = "Поиск клиента с данным id")
             @RequestParam(required = true, name = "номер клиента") Long id) {
-        var clientOptional = ClientService.findClientByClient_id(id);
+        var clientOptional = сlientService.findClientByClient_id(id);
         return clientOptional.map(this::convertToDtoAndRespond)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -82,12 +81,12 @@ public class ClientController {
                     )
             })
     @GetMapping("/clients/{firstName}/{lastName}")
-    public ResponseEntity <Client> getClientByName(
+    public ResponseEntity <ClientDTO> getClientByName(
             @Parameter(description = "Поиск клиента с данными именем и фамилией")
             @PathVariable String firstName,
             @PathVariable String lastName) {
-        Optional<Client> clientOptional = ClientService.findClientByName(firstName, lastName);
-        return clientOptional.map(ResponseEntity::ok)
+        var clientOptional = сlientService.findClientByName(firstName, lastName);
+        return clientOptional.map(this::convertToDtoAndRespond)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -105,7 +104,7 @@ public class ClientController {
     @PostMapping("/")
     public ResponseEntity <Void> createClient(@RequestBody ClientDTO clientDTO) {
         Client client = convertFromDto(clientDTO);
-        ClientService.save(client);
+        сlientService.save(client);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @Operation(
@@ -122,12 +121,12 @@ public class ClientController {
     @PutMapping("/{id}")
     public ResponseEntity <Void> updateClient(@PathVariable Long id
             ,@RequestBody ClientDTO clientDTO) {
-        if (!ClientService.existsById(id)) {
+        if (!сlientService.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
         Client existingClient = convertFromDto(clientDTO);
         existingClient.setClient_id(id); // Сохраняем идентификатор клиента
-        ClientService.save(existingClient);
+        сlientService.save(existingClient);
         return ResponseEntity.noContent().build();
     }
     @Operation(
@@ -146,7 +145,7 @@ public class ClientController {
             @Parameter (description = "Удаление пользователя с данным id")
             @RequestParam (required = false, name = "номер пользователя") Long id) {
         try {
-            ClientService.deleteById(id);
+            сlientService.deleteById(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) { // Перехват исключений при неудачном удалении
             return ResponseEntity.badRequest().body(null);

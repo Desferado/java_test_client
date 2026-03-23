@@ -19,33 +19,27 @@ private final ClientRepository clientRepository;
     }
 
 
-    public Client createClient(Client client) {
-        if (clientRepository.findClientByName(client.getName(), client.getLast_name()).isEmpty()){
-            clientRepository.save(client);
-        }
-        else {
-            System.out.println("This is client already added");
-        }
-        return client;
-    }
-
-
+    /**
+     * Найти всех клиентов.
+     */
     public List<Client> findAllClient() {
         return clientRepository.findAll();
     }
 
-
+    /**
+     * Найти клиента по имени и фамилии.
+     */
     public Optional<Client> findClientByName(String name, String lastName) {
         return Optional.ofNullable(clientRepository.findClientByName(name, lastName)
                 .orElseThrow(ClientNotFoundException::new));
     }
-
-
+    /**
+     * Найти клиента по id.
+     */
     public Optional<Client> findClientByClient_id(Long id) {
         return Optional.ofNullable(clientRepository.findClientByClient_id(id)
                 .orElseThrow(ClientNotFoundException::new));
     }
-
 
     /**
      * Сохранить нового клиента или обновить существующего.
@@ -70,4 +64,5 @@ private final ClientRepository clientRepository;
         }
         clientRepository.deleteById(id);
     }
+
 }

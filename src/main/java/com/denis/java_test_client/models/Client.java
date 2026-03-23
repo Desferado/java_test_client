@@ -1,7 +1,6 @@
 package com.denis.java_test_client.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
