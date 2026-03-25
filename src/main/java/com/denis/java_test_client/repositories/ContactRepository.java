@@ -6,11 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface ContactRepository extends JpaRepository<Contact, Long> {
-    Optional<Contact> findContactByEmail(String email);
+    Contact findContactByEmail(String email);
 
-    Optional<Contact> findContactByPhone(String phone);
+    Contact findContactByPhone(String phone);
 
-    Optional<Contact> findContactById(Long id);
+    Contact findContactById(Long id);
 
     void deleteContactById(Long id);
 

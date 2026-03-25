@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public interface ClientMapper {
     ClientMapper INSTANCE = Mappers.getMapper(ClientMapper.class);
     @Mapping(target = "id", ignore = true)
-    Client ClientDTOToClient(ClientDTO ClientDTO);
+    Client ClientDTOToClient(ClientDTO clientDTO);
 
     @Mapping(target = "id", source = "client_id")
-    ClientDTO toClientDTO(Client Client);
+    ClientDTO toClientDTO(Client client);
 }

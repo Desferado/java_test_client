@@ -1,7 +1,6 @@
 package com.denis.java_test_client.controllers;
 
 import com.denis.java_test_client.dto.ContactDTO;
-import com.denis.java_test_client.models.Client;
 import com.denis.java_test_client.models.Contact;
 import com.denis.java_test_client.services.ContactService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,10 +42,8 @@ public class ContactController {
                     )
             })
     @GetMapping("/")
-    public List<ContactDTO> getAllContacts() {
-        return contactService.findAllContact().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<ContactDTO>> getAllContacts() {
+        return ResponseEntity.ok(contactService.findAllContact());
     }
     @Operation(
             summary = "Поиск контакта по id",
@@ -63,8 +60,8 @@ public class ContactController {
     public ResponseEntity<ContactDTO> getContactById(
             @PathVariable @Parameter(description = "Поиск контакта с данным id")
             @RequestParam(required = true, name = "номер контакта") Long id) {
-        var contactOptional = contactService.findContactById(id);
-        return contactOptional.map(this::convertToDtoAndRespond)
+        Optional<ContactDTO> contactOptional = contactService.findContactById(id);
+        return contactOptional.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -83,8 +80,8 @@ public class ContactController {
     public ResponseEntity <ContactDTO> getContactByEmail(
             @PathVariable @Parameter(description = "Поиск контакта по email")
             @RequestParam(name = "email контакта") String email) {
-        var contact = contactService.findContactByEmail(email);
-        return contact.map(this::convertToDtoAndRespond)
+        Optional<ContactDTO> contactOptional = contactService.findContactByEmail(email);
+        return contactOptional.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     @Operation(
@@ -102,8 +99,8 @@ public class ContactController {
     public ResponseEntity <ContactDTO> getContactByPhone(
             @PathVariable @Parameter(description = "Поиск контакта с данными номером телефона")
             @RequestParam(name = "номер телефона контакта") String phone) {
-        var contact = contactService.findContactByPhone(phone);
-        return contact.map(this::convertToDtoAndRespond)
+        Optional<ContactDTO> contactOptional = contactService.findContactByPhone(phone);
+        return contactOptional.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     @Operation(
@@ -119,8 +116,7 @@ public class ContactController {
             })
     @PostMapping("/")
     public ResponseEntity <ContactDTO> createContact(@RequestBody ContactDTO contactDTO) {
-        Contact contact = convertFromDto(contactDTO);
-        contactService.save(contact);
+        contactService.save(contactDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @Operation(
@@ -135,14 +131,8 @@ public class ContactController {
                     )
             })
     @PutMapping("/{id}")
-    public ResponseEntity <Void> updateContact(@PathVariable Long id, @RequestBody ContactDTO newContactDTO) {
-        if (!contactService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        Contact existingContact = convertFromDto(newContactDTO);
-        existingContact.setId(id); // Сохраняем идентификатор клиента
-        contactService.save(existingContact);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity <ContactDTO> updateContact(@PathVariable Long id, @RequestBody ContactDTO newContactDTO) {
+        return ResponseEntity.ok(contactService.updateContact(id, newContactDTO));
     }
     @Operation(
             summary = "Удаление контакта из базы",
@@ -157,35 +147,9 @@ public class ContactController {
             })
     @DeleteMapping("{id}")
     public ResponseEntity<Void> removeContact(
-            @PathVariable @Parameter (description = "Удаление пользователя с данным id")
-            @RequestParam (required = false, name = "номер пользователя") Long id) {
-        try {
+            @PathVariable @Parameter (description = "Индитификатор контакта")
+            @RequestParam (required = false, name = "номер контакта") Long id) {
             contactService.deleteContactById(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) { // Перехват исключений при неудачном удалении
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
-
-
-    private ContactDTO convertToDto(Contact contact) {
-        ContactDTO dto = new ContactDTO();
-        dto.setId(contact.getId());
-        dto.setPhone(contact.getPhone());
-        dto.setEmail(contact.getEmail());
-        return dto;
-    }
-
-    private ResponseEntity<ContactDTO> convertToDtoAndRespond(Contact contact) {
-        return ResponseEntity.ok(convertToDto(contact));
-    }
-
-    private Contact convertFromDto(ContactDTO dto) {
-        Contact contact = new Contact();
-        contact.setId(dto.getId());
-        contact.setPhone(dto.getPhone());
-        contact.setEmail(dto.getEmail());
-        return contact;
+            return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

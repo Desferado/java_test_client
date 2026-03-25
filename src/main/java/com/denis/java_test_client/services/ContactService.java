@@ -1,5 +1,7 @@
 package com.denis.java_test_client.services;
 
+import com.denis.java_test_client.dto.ContactDTO;
+import com.denis.java_test_client.mapper.ContactMapper;
 import com.denis.java_test_client.models.Contact;
 import com.denis.java_test_client.repositories.ContactRepository;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ContactService {
@@ -18,46 +21,44 @@ public class ContactService {
         this.contactRepository = contactRepository;
     }
 
-    public List<Contact> findAllContact() {
-        return contactRepository.findAll();
+    public List<ContactDTO> findAllContact() {
+        return contactRepository.findAll().stream()
+                .map(ContactMapper.INSTANCE::toContactDTO)
+                .collect(Collectors.toList());
     }
 
-    public Contact updateContact(Long id, Contact newContact) {
-        if(contactRepository.findContactById(id).isPresent())
-            contactRepository.save(newContact);
-        return newContact;
-    }
-    public boolean existsById(Long id) {
-        return contactRepository.existsById(id);
+    public ContactDTO updateContact(Long id, ContactDTO newContactDTO) {
+        Optional<Contact> existingContactOpt = contactRepository.findById(id);
+        Contact existingContact = existingContactOpt.orElseThrow();
+        existingContact.setPhone(newContactDTO.getPhone());
+        existingContact.setEmail(newContactDTO.getEmail());
+        contactRepository.save(existingContact);
+        return ContactMapper.INSTANCE.toContactDTO(existingContact);
     }
     @Transactional
-    public void save(Contact contact) {
-        String phone = phoneCheck(contact.getPhone());
-        contact.setPhone(phone);
-        contactRepository.save(contact);
+    public void save(ContactDTO contactDTO) {
+        String phone = phoneCheck(contactDTO.getPhone());
+        contactDTO.setPhone(phone);
+        contactRepository.save(ContactMapper.INSTANCE.ContactDTOToContact(contactDTO));
     }
-    public Optional<Contact> findContactById(Long id) {
-        return Optional.of(contactRepository.findContactById(id)
-                .orElseThrow());
+    public Optional<ContactDTO> findContactById(Long id) {
+        return Optional.ofNullable(
+                ContactMapper.INSTANCE.toContactDTO(contactRepository.findContactById(id)));
     }
 
-    public Optional<Contact> findContactByPhone(String phone) {
+    public Optional<ContactDTO> findContactByPhone(String phone) {
         String phoneContact = phoneCheck(phone);
-        return contactRepository.findContactByPhone(phoneContact);
+        return Optional.ofNullable(
+                ContactMapper.INSTANCE.toContactDTO(contactRepository.findContactByPhone(phoneContact)));
     }
 
-    public Optional<Contact> findContactByEmail(String email) {
-        return contactRepository.findContactByEmail(email);
+    public Optional<ContactDTO> findContactByEmail(String email) {
+        return Optional.ofNullable(
+                ContactMapper.INSTANCE.toContactDTO(contactRepository.findContactByEmail(email)));
     }
 
     public void deleteContactById (Long id) {
-       Optional<Contact> deleteContact = contactRepository.findContactById(id);
-        if(deleteContact.isPresent()) {
-            contactRepository.deleteContactById(deleteContact.get().getId());
-        }
-        else {
-            System.out.println("Contact not found in database");
-        }
+            contactRepository.deleteContactById(id);
     }
     public String phoneCheck (String phone) {
         PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();

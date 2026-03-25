@@ -60,19 +60,10 @@ private final ClientRepository clientRepository;
         clientRepository.save(ClientMapper.INSTANCE.ClientDTOToClient(clientDTO));
     }
     /**
-     * Проверить существование клиента по идентификатору.
-     */
-    public boolean existsById(Long id) {
-        return clientRepository.existsById(id);
-    }
-    /**
      * Удалить клиента по идентификатору.
      */
     @Transactional
     public void deleteById(Long id) {
-        if (!existsById(id)) {
-            throw new IllegalArgumentException("Клиент с таким ID не найден!");
-        }
         clientRepository.deleteById(id);
     }
 

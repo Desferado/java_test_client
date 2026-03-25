@@ -133,12 +133,8 @@ public class ClientController {
     public ResponseEntity<Void> removeClient(
             @Parameter (description = "Удаление пользователя с данным id")
             @RequestParam (required = false, name = "номер пользователя") Long id) {
-        try {
-            clientService.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) { // Перехват исключений при неудачном удалении
-            return ResponseEntity.badRequest().body(null);
-        }
+        clientService.deleteById(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 
