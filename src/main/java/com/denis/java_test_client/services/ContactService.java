@@ -1,6 +1,5 @@
 package com.denis.java_test_client.services;
 
-import com.denis.java_test_client.exception.ClientNotFoundException;
 import com.denis.java_test_client.models.Contact;
 import com.denis.java_test_client.repositories.ContactRepository;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -38,8 +37,8 @@ public class ContactService {
         contactRepository.save(contact);
     }
     public Optional<Contact> findContactById(Long id) {
-        return Optional.ofNullable(contactRepository.findContactById(id)
-                .orElseThrow(ClientNotFoundException::new));
+        return Optional.of(contactRepository.findContactById(id)
+                .orElseThrow());
     }
 
     public Optional<Contact> findContactByPhone(String phone) {
