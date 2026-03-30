@@ -1,7 +1,6 @@
 package com.denis.java_test_client.controllers;
 
 import com.denis.java_test_client.dto.ClientDTO;
-import com.denis.java_test_client.mapper.ClientMapper;
 import com.denis.java_test_client.models.Client;
 import com.denis.java_test_client.services.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,7 +60,7 @@ public class ClientController {
     @GetMapping("{id}")
     public ResponseEntity<ClientDTO> getClientById(
             @PathVariable @Parameter(description = "Индитификатор клиента")
-            @RequestParam(required = true, name = "номер клиента") Long id) {
+            @RequestParam(name = "номер клиента") Long id) {
         Optional<ClientDTO> clientDTO = clientService.findClientByClient_id(id);
         return clientDTO.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -77,13 +76,13 @@ public class ClientController {
                             )
                     )
             })
-    @GetMapping("/clients")
+    @GetMapping("/findClient")
     public ResponseEntity <ClientDTO> getClientByName(
             @Parameter(description = "Имя и фамилия клиента")
-            @RequestParam String firstName,
+            @RequestParam String name,
             @RequestParam String lastName) {
-        Optional<ClientDTO> clientDTO = clientService.findClientByName(firstName, lastName);
-        return clientDTO.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        Optional<ClientDTO> clientDTO = clientService.findClientByName(name, lastName);
+        return clientDTO.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Operation(
@@ -113,10 +112,13 @@ public class ClientController {
                             )
                     )
             })
-    @PutMapping("/{id}")
-    public ResponseEntity <ClientDTO> updateClient(@PathVariable Long id
-            ,@RequestBody ClientDTO clientDTO) {
-        return ResponseEntity.ok(clientService.updateClientDTO(id, clientDTO));
+    @PutMapping("{id}")
+    public ResponseEntity<ClientDTO> updateClient(@PathVariable Long id
+            , @RequestBody ClientDTO clientDTO) {
+            ClientDTO updatedClient = clientService.updateClientDTO(id, clientDTO);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(updatedClient);
     }
     @Operation(
             summary = "Удаление клиента из базы",
@@ -131,8 +133,8 @@ public class ClientController {
             })
     @DeleteMapping("{id}")
     public ResponseEntity<Void> removeClient(
-            @Parameter (description = "Удаление пользователя с данным id")
-            @RequestParam (required = false, name = "номер пользователя") Long id) {
+            @PathVariable @Parameter(description = "Индитификатор клиента")
+            @RequestParam(required = false, name = "номер клиента") Long id) {
         clientService.deleteById(id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }

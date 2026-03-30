@@ -24,4 +24,5 @@ public class EntityNotFoundException extends RuntimeException {
     public static void throwHttpNotFound(String errorMessage) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, errorMessage);
     }
+
 }

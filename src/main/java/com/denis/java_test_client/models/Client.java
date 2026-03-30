@@ -17,12 +17,14 @@ public class Client {
     @Column(nullable = false)
     private String lastName;   //фамилия клиента
 
-    @OneToOne @JoinColumn(name = "сontact_id")
-    private Contact contact_id; //контакты клиента
+    @OneToOne (fetch = FetchType.EAGER)
+    @JoinColumn(name = "id")
+    private Contact contact; //контакты клиента
 
-    public Client(Long clientId, String name, String lastName) {
+    public Client(Long clientId, String name, String lastName, Contact contact) {
         this.clientId = clientId;
         this.name = name;
         this.lastName = lastName;
+        this.contact = contact;
     }
 }

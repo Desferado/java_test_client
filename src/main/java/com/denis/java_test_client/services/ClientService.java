@@ -1,6 +1,7 @@
 package com.denis.java_test_client.services;
 
 import com.denis.java_test_client.dto.ClientDTO;
+import com.denis.java_test_client.exception.EntityNotFoundException;
 import com.denis.java_test_client.mapper.ClientMapper;
 import com.denis.java_test_client.models.Client;
 import com.denis.java_test_client.repositories.ClientRepository;
@@ -43,10 +44,10 @@ private final ClientRepository clientRepository;
     public Optional<ClientDTO> findClientByClient_id(Long id) {
         return Optional.ofNullable(ClientMapper.INSTANCE.toClientDTO(clientRepository.findClientByClient_id(id)));
     }
-    
+    @Transactional
     public ClientDTO updateClientDTO (Long id, ClientDTO updatedClientDTO) {
         Optional<Client> existingClientOpt = clientRepository.findById(id);
-        Client existingClient = existingClientOpt.orElseThrow();
+        Client existingClient = existingClientOpt.orElseThrow(() -> new EntityNotFoundException("Клиент с id " + id + " не найден."));
         existingClient.setName(updatedClientDTO.getName());
         existingClient.setLastName(updatedClientDTO.getLastName());
         clientRepository.save(existingClient);

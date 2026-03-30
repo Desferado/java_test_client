@@ -1,14 +1,21 @@
 package com.denis.java_test_client.dto;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
-import java.util.Map;
 
 @Data
 public class ClientDTO {
-    private Long client_id;
+    private Long clientId;
     private String name;
     private String lastName;
-    private Long contactIds; // Список идентификаторов контактов клиента
+    @JsonManagedReference
+    private ContactDTO contact; // Список идентификаторов контактов клиента
 
+    public ClientDTO(Long clientId, String name, String lastName, ContactDTO contact) {
+        this.clientId = clientId;
+        this.name = name;
+        this.lastName = lastName;
+        this.contact = contact;
+    }
 }
